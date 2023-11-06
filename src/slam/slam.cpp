@@ -247,12 +247,6 @@ void OccupancyGridSLAM::runSLAMIteration(void)
         std::cerr << "ERROR: OccupancyGridSLAM: Detected invalid laser scan with " << currentScan_.num_ranges
             << " ranges.\n";
     }
-
-    // Update odometry to match SLAM, but only if we've been running for a while.
-    if (iters_ > 100)
-    {
-        bool reset = updateOdometry(currentOdometry_, currentPose_);
-    }
 }
 
 
