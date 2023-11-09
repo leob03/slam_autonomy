@@ -33,16 +33,26 @@
  */
 ///////////////////////////////////////////////////////////
 
+// Utility function to clamp values
+float clamp(float val, float min_val, float max_val) {
+    return std::max(min_val, std::min(max_val, val));
+}
+
 class StraightManeuverController : public ManeuverControllerBase
 {
 
 private:
-    float fwd_pid[3] = {1.0, 0, 0};
+    float fwd_pid[3] = {1.0, 0.1, 0.01};
     float fwd_sum_error = 0;
     float fwd_last_error = 0;
-    float turn_pid[3] = {3.0, 0, 0};
+    float turn_pid[3] = {3.0, 0.1, 0.01};
     float turn_sum_error = 0;
     float turn_last_error = 0;
+    const float MAX_FWD_SPEED = 1.0; // Adjust this value
+    const float MIN_FWD_SPEED = -1.0; // Adjust this value
+    const float MAX_TURN_SPEED = M_PI / 2; // Adjust this value
+    const float MIN_TURN_SPEED = -M_PI / 2; // Adjust this value
+
 public:
     StraightManeuverController() = default;   
     virtual mbot_lcm_msgs::twist2D_t get_command(const mbot_lcm_msgs::pose2D_t& pose, const mbot_lcm_msgs::pose2D_t& target) override
@@ -53,14 +63,26 @@ public:
         float d_theta = angle_diff(atan2(dy,dx), pose.theta);
 
         // PID separately for the fwd and the angular velocity output given the fwd and angular error
-        fwd_sum_error += d_fwd;
-        float fwd_der = 0;
-        if (fwd_last_error > 0)
-            fwd_der = (d_fwd - fwd_last_error) / 0.05;
+
+        // //initial code
+        // fwd_sum_error += d_fwd;
+        // float fwd_der = 0;
+        // if (fwd_last_error > 0)
+        //     fwd_der = (d_fwd - fwd_last_error) / 0.05;
         
-        float fwd_vel = fwd_pid[0] * d_fwd + fwd_pid[1] * fwd_sum_error + fwd_pid[2] * fwd_der;
+        // float fwd_vel = fwd_pid[0] * d_fwd + fwd_pid[1] * fwd_sum_error + fwd_pid[2] * fwd_der;
+
+        float fwd_error = d_fwd;
+        fwd_sum_error += fwd_error; // Update integral term
+        float fwd_der = (fwd_error - fwd_last_error) / 0.05; // Calculate derivative term
+        fwd_last_error = fwd_error; // Update the last error for the next cycle
+
+        float fwd_vel = fwd_pid[0] * fwd_error + fwd_pid[1] * fwd_sum_error + fwd_pid[2] * fwd_der; // PID output for forward velocity
+
+
         // fprintf(stdout,"Fwd error: %f\tFwd vel: %f\n", d_fwd, fwd_vel);
 
+        // // initial code
         turn_sum_error += d_theta;
         float turn_der = 0;
         if (turn_last_error > 0)
@@ -68,6 +90,18 @@ public:
         
         float turn_vel = turn_pid[0] * d_theta + turn_pid[1] * turn_sum_error + turn_pid[2] * turn_der;
         // fprintf(stdout,"Turn error: %f\tTurn vel: %f\n", d_theta, turn_vel);
+
+        const float heading_correction_gain = 1.0; // Adjust this value
+        fwd_vel *= cos(d_theta); // Reduce the forward velocity when there is a significant angular error
+        turn_vel += heading_correction_gain * d_theta; // Add a correction to the turning velocity based on the angular error
+
+        // const float some_small_distance_threshold = 0.03;
+        // if (d_fwd < some_small_distance_threshold) {
+        //     turn_vel = std::min(turn_vel, some_max_turn_velocity);
+        // }
+
+        fwd_vel = clamp(fwd_vel, MIN_FWD_SPEED, MAX_FWD_SPEED);
+        turn_vel = clamp(turn_vel, MIN_TURN_SPEED, MAX_TURN_SPEED);
 
         return {0, fwd_vel, 0, turn_vel};
     }
