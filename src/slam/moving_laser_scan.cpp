@@ -4,6 +4,7 @@
 #include <mbot_lcm_msgs/pose2D_t.hpp>
 #include <utils/geometric/angle_functions.hpp>
 #include <cassert>
+#include <utils/geometric/pose_trace.hpp>
 
 MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
                                  const mbot_lcm_msgs::pose2D_t& beginPose,
@@ -21,16 +22,17 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
 
         for(int n = 0; n < scan.num_ranges; n += rayStride)
         {
-            if(scan.ranges[n] > 0.1f) //all ranges less than a robot radius are invalid
+            if(scan.ranges[n] > 0.1f && scan.ranges[n] < 5.5f) //all ranges less than a robot radius and at max value are invalid
             {
                 /// TODO: Do something about those ranges that are equal to the maximum value (assumed 5.5)
 
                 mbot_lcm_msgs::pose2D_t rayPose = interpolate_pose_by_time(scan.times[n], beginPose, endPose);
 
                 adjusted_ray_t ray;
+                mbot_lcm_msgs::pose2D_t oldRay = poseAt(scan.times[n]);
 
                 /// TODO: Populate the 'ray' using interpolated pose and the laser scan information.
-                
+                ray = apply_frame_transpose(oldRay, rayPose);
 
                 adjustedRays_.push_back(ray);
             }

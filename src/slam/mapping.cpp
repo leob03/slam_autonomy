@@ -22,17 +22,18 @@ void Mapping::updateMap(const mbot_lcm_msgs::lidar_t& scan,
         previousPose_ = pose;
     initialized_ = true;
 
+//    adjustedray_t adjustedScans = MovingLaserScan movingScan(scan, previousPose_, pose);
     MovingLaserScan movingScan(scan, previousPose_, pose);
 
     /// TODO: Update the map's log odds using the movingScan  
     //
     // Hint: Consider both the cells the laser hit and the cells it passed through.
     //define a ray that can be used incalc
-    int n = scan.size();
+    int n = adjustedScans.size();
     std::vector<adjusted_ray_t> ray;
     for (int i=0;n;i++)
     {
-        ray = scan[i];
+        ray = adjustedScans[i];
         scoreEndpoint(ray, map);
         scoreRay(ray,map);
 
