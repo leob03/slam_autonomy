@@ -4,12 +4,11 @@
 #include <mbot_lcm_msgs/pose2D_t.hpp>
 #include <utils/geometric/angle_functions.hpp>
 #include <cassert>
-#include <utils/geometric/pose_trace.hpp>
 
 MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
                                  const mbot_lcm_msgs::pose2D_t& beginPose,
                                  const mbot_lcm_msgs::pose2D_t& endPose,
-                                 int rayStride)
+                                 int rayStride )
 {
     // Ensure a valid scan was received before processing the rays
     if(scan.num_ranges > 0)
@@ -29,10 +28,12 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
                 mbot_lcm_msgs::pose2D_t rayPose = interpolate_pose_by_time(scan.times[n], beginPose, endPose);
 
                 adjusted_ray_t ray;
-                mbot_lcm_msgs::pose2D_t oldRay = poseAt(scan.times[n]);
 
                 /// TODO: Populate the 'ray' using interpolated pose and the laser scan information.
-                ray = apply_frame_transpose(oldRay, rayPose);
+                ray.origin.x = rayPose.x;
+                ray.origin.y = rayPose.y;
+                ray.range = scan.ranges[n];
+                ray.theta = wrap_to_pi(rayPose.theta - scan.thetas[n]);
 
                 adjustedRays_.push_back(ray);
             }

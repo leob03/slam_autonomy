@@ -22,20 +22,18 @@ void Mapping::updateMap(const mbot_lcm_msgs::lidar_t& scan,
         previousPose_ = pose;
     initialized_ = true;
 
-//    adjustedray_t adjustedScans = MovingLaserScan movingScan(scan, previousPose_, pose);
+    std::vector<Point<int>> adjustedScans;
+    // MovingLaserScan movingScan(scan, previousPose_, pose, 1, adjustedScans);
     MovingLaserScan movingScan(scan, previousPose_, pose);
 
     /// TODO: Update the map's log odds using the movingScan  
     //
     // Hint: Consider both the cells the laser hit and the cells it passed through.
     //define a ray that can be used incalc
-    int n = adjustedScans.size();
-    std::vector<adjusted_ray_t> ray;
-    for (int i=0;n;i++)
+    for (adjusted_ray_t ray : movingScan)
     {
-        ray = adjustedScans[i];
         scoreEndpoint(ray, map);
-        scoreRay(ray,map);
+        scoreRay(ray, map);
 
     }
 }
@@ -46,9 +44,12 @@ void Mapping::scoreEndpoint(const adjusted_ray_t& ray, OccupancyGrid& map)
     
     int x = ray.range*cos(ray.theta);
     int y = ray.range*sin(ray.theta);
-    int currentOdds = map.logOdds(x, y);
-    int updatedOdds = currentOdds + kHitOdds_;
-    map.setLogOdds(x,y,updatedOdds);  
+    if (map.isCellInGrid(x,y) && map(x,y) < 127)
+    {
+        int currentOdds = map.logOdds(x, y);
+        int updatedOdds = currentOdds + kHitOdds_;
+        map.setLogOdds(x,y,updatedOdds);  
+    }
     
 }
 
@@ -68,9 +69,12 @@ void Mapping::scoreRay(const adjusted_ray_t& ray, OccupancyGrid& map)
         currentPoint = rayPoints[i];
         x = currentPoint.x;
         y = currentPoint.y;
+        if (map.isCellInGrid(x,y) && map(x,y) > -127)
+        {
         currentOdds = map.logOdds(x, y);
         updatedOdds = currentOdds - kMissOdds_;
-        map.setLogOdds(x,y,updatedOdds);
+        map.setLogOdds(x,y,updatedOdds);    
+        }
     }  
 }
 
