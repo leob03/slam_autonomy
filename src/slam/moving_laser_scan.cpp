@@ -23,8 +23,6 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
         {
             if(scan.ranges[n] > 0.1f && scan.ranges[n] < 5.5f)
             {
-                /// TODO: Do something about those ranges that are equal to the maximum value (assumed 5.5)
-
                 mbot_lcm_msgs::pose2D_t rayPose = interpolate_pose_by_time(scan.times[n], beginPose, endPose);
 
                 adjusted_ray_t ray;
