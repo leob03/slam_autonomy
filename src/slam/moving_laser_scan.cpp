@@ -29,9 +29,11 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
 
                 adjusted_ray_t ray;
 
-                /// TODO: Populate the 'ray' using interpolated pose and the laser scan information.
+                ray.origin.x = rayPose.x;
+                ray.origin.y = rayPose.y;
+                ray.range    = scan.ranges[n];
+                ray.theta    = wrap_to_pi(rayPose.theta - scan.thetas[n]);
                 
-
                 adjustedRays_.push_back(ray);
             }
         }
