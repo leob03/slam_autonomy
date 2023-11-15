@@ -21,7 +21,7 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
 
         for(int n = 0; n < scan.num_ranges; n += rayStride)
         {
-            if(scan.ranges[n] > 0.1f) //all ranges less than a robot radius are invalid
+            if(scan.ranges[n] > 0.1f && scan.ranges[n] < 5.5f)
             {
                 /// TODO: Do something about those ranges that are equal to the maximum value (assumed 5.5)
 
