@@ -51,13 +51,16 @@ void Mapping::scoreEndpoint(const adjusted_ray_t& ray, OccupancyGrid& map)
     
 }
 
+
 void Mapping::scoreRay(const adjusted_ray_t& ray, OccupancyGrid& map)
 {
-    /// TODO: Implement how to score the cells that the laser ray passes through  
-    
-    
-}
+    std::vector<Point<int>> cellsAlongRay = bresenham(ray, map);
 
+    for (const Point<int>& cell : cellsAlongRay)
+    {
+        decreaseCellOdds(cell.x, cell.y, map);
+    }
+}
 
 void Mapping::increaseCellOdds(int x, int y, OccupancyGrid& map)
 {
@@ -137,10 +140,11 @@ std::vector<Point<int>> Mapping::bresenham(const adjusted_ray_t& ray, const Occu
     return points;
 }
 
-std::vector<Point<int>> Mapping::divideAndStepAlongRay(const adjusted_ray_t& ray, const OccupancyGrid& map)
-{
-    /// TODO: Implement an alternative approach to find cells touched by the ray. 
-    return {};
+
+// std::vector<Point<int>> Mapping::divideAndStepAlongRay(const adjusted_ray_t& ray, const OccupancyGrid& map)
+// {
+//     /// TODO: Implement an alternative approach to find cells touched by the ray. 
+//     return {};
     
-}
+// }
 

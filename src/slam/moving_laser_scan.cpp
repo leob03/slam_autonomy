@@ -38,4 +38,5 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
     }
 }
 
+
  
