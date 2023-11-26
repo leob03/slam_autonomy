@@ -155,9 +155,13 @@ void ParticleFilter::reinvigoratePriorDistribution(ParticleList& prior)
 ParticleList ParticleFilter::computeProposalDistribution(const ParticleList& prior)
 {
     //////////// TODO: Implement your algorithm for creating the proposal distribution by sampling from the ActionModel
+    ParticleList proposal;
+    for(auto&& p : prior)
+    {
+        proposal.push_back(actionModel_.applyAction(p));
+    }
     
-    
-    return ParticleList();  // Placeholder
+    return proposal;  // Placeholder
 }
 
 

@@ -68,6 +68,7 @@ private:
     double dtheta_;
     uint64_t utime_;
 
+    bool moved_;
     bool initialized_;
 
     std::mt19937 numberGenerator_;
@@ -75,6 +76,15 @@ private:
     float xStd_;
     float yStd_;
     float thetaStd_;
+
+    // mbot_lcm_msgs::pose2D_t previousOdometry_;
+    // double rot1_;
+    // double trans_;
+    // double rot2_;
+
+    // double rot1Std_;
+    // double transStd_;
+    // double rot2Std_;
 };
 
 #endif // SLAM_ACTION_MODEL_HPP
