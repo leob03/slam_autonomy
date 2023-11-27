@@ -26,18 +26,37 @@ double SensorModel::likelihood(const mbot_lcm_msgs::particle_t& sample,
                                const OccupancyGrid& map)
 {
     /// TODO: Compute the likelihood of the given particle using the provided laser scan and map. 
+    double scanScore = 0.0;
+    MovingLaserScan movingScan(scan, sample.parent_pose, sample.pose);
 
-    return 0.0; // Placeholder
+    for(auto& ray : movingScan)
+    {
+        Point<double> endpoint(ray.origin.x + ray.range*cos(ray.theta), ray.origin.y + ray.range*sin(ray.theta));
+        auto rayEnd = global_position_to_grid_position(endpoint, map);
+        if(map.logOdds(rayEnd.x, rayEnd.y) > occupancy_threshold_)
+        {
+            scanScore += 1.0;
+        }
+        // else
+        // {
+        //     Point<int> nearestOccupiedCell = gridBFS(rayEnd, map);
+        //     Point<double> nearestOccupiedCellGlobal = grid_position_to_global_position(nearestOccupiedCell, map);
+        //     double distance = sqrt(pow(endpoint.x - nearestOccupiedCellGlobal.x, 2) + pow(endpoint.y - nearestOccupiedCellGlobal.y, 2));
+        //     scanScore += NormalPdf(distance);
+        // }
+    }
+    return scanScore; // Placeholder
     
 }
 
-double SensorModel::scoreRay(const adjusted_ray_t& ray, const OccupancyGrid& map)
-{
-    /// TODO: Compute a score for a given ray based on its end point and the map. 
-    // Consider the offset from the nearest occupied cell.  
-    return 0.0; // Placeholder
+// double SensorModel::scoreRay(const adjusted_ray_t& ray, const OccupancyGrid& map)
+// {
+//     /// TODO: Compute a score for a given ray based on its end point and the map. 
+//     // Consider the offset from the nearest occupied cell.  
+//     Point<double> endpoint(ray.origin.x + ray.range*cos(ray.theta), ray.origin.y + ray.range*sin(ray.theta));
+
     
-}
+// }
 
 double SensorModel::NormalPdf(const double& x)
 {
