@@ -155,9 +155,28 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const bool keep_best,
                                                            const bool reinvigorate)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
+    ParticleList resampled;
+    double sample_weight = 1.0 / kNumParticles_;
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_real_distribution<> dis(0.0, sample_weight);
+
+    double r = dis(generator);
+    double c = posterior_[0].weight;
+    int i = 0;
+
+    for (int m = 0; m < kNumParticles_; m++)
+    {
+        double U = r + m * sample_weight;
+        while (U > c)
+        {
+            i++;
+            c += posterior_[i].weight;
+        }
+        resampled.push_back(posterior_[i]);
+    }
     
-    
-    return ParticleList();  // Placeholder
+    return resampled;  // Placeholder
 }
 
 

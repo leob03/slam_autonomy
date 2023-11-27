@@ -40,8 +40,8 @@ void Mapping::scoreEndpoint(const adjusted_ray_t& ray, OccupancyGrid& map)
         Point<float> rayStart = global_position_to_grid_cell(ray.origin, map);
         Point<int> rayCell;
 
-        rayCell.x = static_cast<int>(rayStart.x + ray.range * std::cos(ray.theta) * map.cellsPerMeter());
-        rayCell.y = static_cast<int>(rayStart.y + ray.range * std::sin(ray.theta) * map.cellsPerMeter());
+        rayCell.x = static_cast<int>(rayStart.x + (ray.range * std::cos(ray.theta) * map.cellsPerMeter()));
+        rayCell.y = static_cast<int>(rayStart.y + (ray.range * std::sin(ray.theta) * map.cellsPerMeter()));
 
         if(map.isCellInGrid(rayCell.x, rayCell.y))
         {
@@ -54,12 +54,12 @@ void Mapping::scoreEndpoint(const adjusted_ray_t& ray, OccupancyGrid& map)
 
 void Mapping::scoreRay(const adjusted_ray_t& ray, OccupancyGrid& map)
 {
-    // std::vector<Point<int>> cellsAlongRay = bresenham(ray, map);
+    std::vector<Point<int>> cellsAlongRay = bresenham(ray, map);
 
-    // for (const Point<int>& cell : cellsAlongRay)
-    // {
-    //     decreaseCellOdds(cell.x, cell.y, map);
-    // }
+    for (const Point<int>& cell : cellsAlongRay)
+    {
+        decreaseCellOdds(cell.x, cell.y, map);
+    }
 }
 
 void Mapping::increaseCellOdds(int x, int y, OccupancyGrid& map)
