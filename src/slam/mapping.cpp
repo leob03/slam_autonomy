@@ -54,21 +54,21 @@ void Mapping::scoreEndpoint(const adjusted_ray_t& ray, OccupancyGrid& map)
 
 void Mapping::scoreRay(const adjusted_ray_t& ray, OccupancyGrid& map)
 {
-    std::vector<Point<int>> cellsAlongRay = bresenham(ray, map);
+    // std::vector<Point<int>> cellsAlongRay = bresenham(ray, map);
 
-    for (const Point<int>& cell : cellsAlongRay)
-    {
-        decreaseCellOdds(cell.x, cell.y, map);
-    }
+    // for (const Point<int>& cell : cellsAlongRay)
+    // {
+    //     decreaseCellOdds(cell.x, cell.y, map);
+    // }
 }
 
 void Mapping::increaseCellOdds(int x, int y, OccupancyGrid& map)
 {
     if(!initialized_)
     {
-        return;
+        // return;
     }
-    else if(map(x, y) < 127)
+    else if(127 - map(x, y) > kHitOdds_)
     {
         map(x, y) += kHitOdds_;
     }
@@ -82,15 +82,15 @@ void Mapping::decreaseCellOdds(int x, int y, OccupancyGrid& map)
 {
     if(!initialized_)
     {
-        return;
+        // return;
     }
-    else if(map(x, y) > -127)
+    else if(map(x, y) + 128 > kMissOdds_)
     {
         map(x, y) -= kMissOdds_;
     }
     else
     {
-        map(x, y) = -127;
+        map(x, y) = -128;
     }
 }
 
