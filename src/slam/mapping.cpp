@@ -68,13 +68,13 @@ void Mapping::increaseCellOdds(int x, int y, OccupancyGrid& map)
     {
         // return;
     }
-    else if(127 - map(x, y) > kHitOdds_)
+    else if(100 - map(x, y) > kHitOdds_)
     {
         map(x, y) += kHitOdds_;
     }
     else
     {
-        map(x, y) = 127;
+        map(x, y) = 100;
     }
 }
 
@@ -84,13 +84,13 @@ void Mapping::decreaseCellOdds(int x, int y, OccupancyGrid& map)
     {
         // return;
     }
-    else if(map(x, y) + 128 > kMissOdds_)
+    else if(map(x, y) + 100 > kMissOdds_)
     {
         map(x, y) -= kMissOdds_;
     }
     else
     {
-        map(x, y) = -128;
+        map(x, y) = -100;
     }
 }
 

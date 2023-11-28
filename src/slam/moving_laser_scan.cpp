@@ -21,8 +21,8 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
 
         for(int n = 0; n < scan.num_ranges; n += rayStride)
         {
-            if(scan.ranges[n] > 0.1f && scan.ranges[n] < 5.5f)
-            // if(scan.ranges[n] > 0.15f)
+            // if(scan.ranges[n] > 0.1f && scan.ranges[n] < 5.5f)
+            if(scan.ranges[n] > 0.1f)
             {
                 mbot_lcm_msgs::pose2D_t rayPose = interpolate_pose_by_time(scan.times[n], beginPose, endPose);
 
@@ -31,7 +31,7 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
                 ray.origin.x = rayPose.x;
                 ray.origin.y = rayPose.y;
                 ray.range    = scan.ranges[n];
-                ray.theta    = wrap_to_pi(rayPose.theta - scan.thetas[n]);
+                ray.theta    = wrap_to_pi(rayPose.theta + scan.thetas[n]);
                 
                 adjustedRays_.push_back(ray);
             }
