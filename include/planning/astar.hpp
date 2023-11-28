@@ -11,13 +11,13 @@ typedef Point<int> cell_t;
 
 struct Node
 {
-    double h_cost;
-    double g_cost;
+    float h_cost;
+    float g_cost;
     Node* parent;
     cell_t cell;
     Node(int a, int b) : h_cost(1.0E16), g_cost(1.0E16), parent(NULL), cell(a,b) {}
 
-    double f_cost(void) const { return g_cost + h_cost; }
+    float f_cost(void) const { return g_cost + h_cost; }
     bool operator==(const Node& rhs) const
     {
         return (cell == rhs.cell);
@@ -111,8 +111,8 @@ struct SearchParams
                                     ///< for cellDistance > minDistanceToObstacle && cellDistance < maxDistanceWithCost
 };
 
-double h_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances);
-double g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params);
+float h_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances);
+float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params);
 std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params);
 std::vector<Node*> extract_node_path(Node* goal_node, Node* start_node);
 // To prune the path for the waypoint follower

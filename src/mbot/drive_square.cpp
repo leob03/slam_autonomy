@@ -8,7 +8,8 @@
 
 int main(int argc, char** argv)
 {
-    int numTimes = 4;
+    int numTimes = 1;
+    // int numTimes = 4;
 
     if(argc > 1)
     {
@@ -18,6 +19,89 @@ int main(int argc, char** argv)
     std::cout << "Commanding robot to drive around 1m square " << numTimes << " times.\n";
 
     mbot_lcm_msgs::path2D_t path;
+
+    /*
+
+    path.path.resize(9);
+
+    mbot_lcm_msgs::pose2D_t nextPose;
+
+    nextPose.x = 0.65f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path[0] = nextPose;
+
+    nextPose.x = 0.61f;
+    nextPose.y = -0.61f;
+    nextPose.theta = 0.0f;
+    path.path[1] = nextPose;
+
+    nextPose.x = 1.22f;
+    nextPose.y = -0.61f;
+    nextPose.theta = 0.0f;
+    path.path[2] = nextPose;
+
+    nextPose.x = 1.22f;
+    nextPose.y = 0.61f;
+    nextPose.theta = 0.0f;
+    path.path[3] = nextPose;
+
+    nextPose.x = 1.83f;
+    nextPose.y = 0.61f;
+    nextPose.theta = 0.0f;
+    path.path[4] = nextPose;
+
+    nextPose.x = 1.83f;
+    nextPose.y = -0.61f;
+    nextPose.theta = 0.0f;
+    path.path[5] = nextPose;
+
+    nextPose.x = 2.44f;
+    nextPose.y = -0.61f;
+    nextPose.theta = 0.0f;
+    path.path[6] = nextPose;
+
+    nextPose.x = 2.44f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path[7] = nextPose;
+
+    nextPose.x = 3.2f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path[8] = nextPose;
+
+    nextPose.x = 0.0f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path.insert(path.path.begin(), nextPose);
+    
+    */
+    
+    /*
+
+    path.path.resize(2);
+
+    mbot_lcm_msgs::pose2D_t nextPose;
+
+    nextPose.x = 1.2f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path[0] = nextPose;
+
+    nextPose.x = 0.0f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path[1] = nextPose;
+
+    nextPose.x = 0.0f;
+    nextPose.y = 0.0f;
+    nextPose.theta = 0.0f;
+    path.path.insert(path.path.begin(), nextPose);
+
+    */
+
+
     path.path.resize(numTimes * 4);
 
     mbot_lcm_msgs::pose2D_t nextPose;
@@ -54,6 +138,7 @@ int main(int argc, char** argv)
         path.path[4*n + 3] = nextPose;
     }
 
+
     // Return to original heading after completing all circuits
 //    nextPose.theta = 0.0f;
 //    path.path.push_back(nextPose);
@@ -62,6 +147,7 @@ int main(int argc, char** argv)
     nextPose.y = 0.0f;
     nextPose.theta = 0.0f;
     path.path.insert(path.path.begin(), nextPose);
+
 
     path.path_length = path.path.size();
 

@@ -39,17 +39,6 @@ target_include_directories(mbot_motion_controller PRIVATE
   include
 )
 
-# DRIVE SQUARE
-add_executable(drive_square src/mbot/drive_square.cpp)
-
-target_link_libraries(drive_square
-  common_utils
-  lcm
-)
-target_include_directories(drive_square PRIVATE
-  include
-)
-
 # SLAM
 add_executable(mbot_slam src/slam/slam_main.cpp
   src/slam/action_model.cpp
@@ -129,4 +118,46 @@ set_target_properties(mbot_slam mbot_motion_controller PROPERTIES
 install(
   TARGETS mbot_slam mbot_motion_controller
   DESTINATION bin
+)
+
+
+add_executable(astar_test src/planning/astar.cpp src/planning/astar_test.cpp src/slam/occupancy_grid.cpp src/planning/motion_planner.cpp src/planning/obstacle_distance_grid.cpp)
+
+target_link_libraries(astar_test 
+  mbot_lcm_msgs-cpp
+  common_utils
+  lcm
+)
+
+target_include_directories(astar_test PRIVATE
+ include
+)
+
+target_include_directories (motion_planning_server PRIVATE
+  include
+)
+
+add_executable (dis_test src/planning/obstacle_distance_grid.cpp src/planning/obstacle_distance_grid_test.cpp src/slam/occupancy_grid.cpp)
+
+target_link_libraries (dis_test
+  mbot_lcm_msgs-cpp
+  common_utils
+  lcm
+)
+
+target_include_directories(dis_test PRIVATE
+  include
+)
+
+
+
+# DRIVE SQUARE
+add_executable(drive_square src/mbot/drive_square.cpp)
+
+target_link_libraries(drive_square
+  common_utils
+  lcm
+)
+target_include_directories(drive_square PRIVATE
+  include
 )
