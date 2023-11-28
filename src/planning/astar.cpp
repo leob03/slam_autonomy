@@ -24,7 +24,6 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
 
     PriorityQueue open;
     std::vector<Node*> closed;
-    std::vector<Node*> path;
     std::vector<cell_t> path_cells;
 
     std::vector<Node*> children;

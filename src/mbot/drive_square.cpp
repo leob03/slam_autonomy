@@ -20,7 +20,6 @@ int main(int argc, char** argv)
 
     mbot_lcm_msgs::path2D_t path;
 
-    /*
 
     path.path.resize(9);
 
@@ -76,7 +75,6 @@ int main(int argc, char** argv)
     nextPose.theta = 0.0f;
     path.path.insert(path.path.begin(), nextPose);
     
-    */
     
     /*
 
@@ -101,6 +99,7 @@ int main(int argc, char** argv)
 
     */
 
+   /*
 
     path.path.resize(numTimes * 4);
 
@@ -137,6 +136,8 @@ int main(int argc, char** argv)
     {
         path.path[4*n + 3] = nextPose;
     }
+
+    */
 
 
     // Return to original heading after completing all circuits
