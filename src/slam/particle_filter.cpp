@@ -5,6 +5,7 @@
 #include <mbot_lcm_msgs/particle_t.hpp>
 #include <utils/geometric/angle_functions.hpp>
 #include <cassert>
+#include <iostream>
 
 
 ParticleFilter::ParticleFilter(int numParticles)
@@ -82,6 +83,30 @@ mbot_lcm_msgs::pose2D_t ParticleFilter::updateFilter(const mbot_lcm_msgs::pose2D
     /// TODO: Add reinvigoration step
     posteriorPose_ = estimatePosteriorPose(posterior_);
 
+
+
+    // // Testing:
+    // auto printParticleList = [](const ParticleList& list, const std::string& name) {
+    //     std::cout << name << ": [" << std::endl;
+    //     for (const auto& particle : list) {
+    //         std::cout << "    Particle: { Pose: {" 
+    //                   << "x: " << particle.pose.x << ", y: " << particle.pose.y << ", theta: " << particle.pose.theta 
+    //                   << "}, Weight: " << particle.weight << " }" << std::endl;
+    //     }
+    //     std::cout << "]" << std::endl;
+    // };
+
+    // printParticleList(prior, "Prior");
+    // printParticleList(proposal, "Proposal");
+    // printParticleList(posterior_, "Posterior");
+
+    // // Print the pose2D_t contents
+    // std::cout << "PosteriorPose: { "
+    //           << "x: " << posteriorPose_.x << ", y: " << posteriorPose_.y 
+    //           << ", theta: " << posteriorPose_.theta << ", utime: " << posteriorPose_.utime 
+    //           << " }" << std::endl;
+
+
     posteriorPose_.utime = odometry.utime;
 
     return posteriorPose_;
@@ -126,28 +151,51 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid& 
                                                            const bool reinvigorate)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
-    ParticleList resampled;
-    double sample_weight = 1.0 / kNumParticles_;
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    std::uniform_real_distribution<> dis(0.0, sample_weight);
+    // ParticleList resampled;
+    // double sample_weight = 1.0 / kNumParticles_;
+    // std::random_device rd;
+    // std::mt19937 generator(rd());
+    // std::uniform_real_distribution<> dis(0.0, sample_weight);
 
-    double r = dis(generator);
-    double c = posterior_[0].weight;
-    int i = 0;
+    // double r = dis(generator);
+    // double c = posterior_[0].weight;
+    // int i = 0;
 
-    for (int m = 0; m < kNumParticles_; m++)
-    {
-        double U = r + m * sample_weight;
-        while (U > c)
-        {
-            i++;
-            c += posterior_[i].weight;
-        }
-        resampled.push_back(posterior_[i]);
-    }
+    // for (int m = 0; m < kNumParticles_; m++)
+    // {
+    //     double U = r + m * sample_weight;
+    //     while (U > c)
+    //     {
+    //         i++;
+    //         c += posterior_[i].weight;
+    //     }
+    //     resampled.push_back(posterior_[i]);
+    // }
     
-    return resampled;  // Placeholder
+    // return resampled;  // Placeholder
+    ParticleList samples;
+
+    if (kNumParticles_ < 1 || posterior_.size() < 1) return samples;
+
+    std::random_device rd{};
+    std::mt19937 gen{rd()};
+    std::uniform_real_distribution<float> distribution(0.0, 1.0 / kNumParticles_);
+
+    float r = distribution(gen);
+    size_t idx = 0;
+    float s = posterior_[idx].weight;
+
+    for (int i = 0; i < kNumParticles_; ++i)
+    {
+        float u = r + i * 1. / kNumParticles_;
+        while (u > s) {
+            ++idx;
+            s += posterior_[idx].weight;
+        }
+        samples.push_back(posterior_[idx]);
+    }
+
+    return samples;
 }
 
 
@@ -155,28 +203,51 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const bool keep_best,
                                                            const bool reinvigorate)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
-    ParticleList resampled;
-    double sample_weight = 1.0 / kNumParticles_;
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    std::uniform_real_distribution<> dis(0.0, sample_weight);
+    // ParticleList resampled;
+    // double sample_weight = 1.0 / kNumParticles_;
+    // std::random_device rd;
+    // std::mt19937 generator(rd());
+    // std::uniform_real_distribution<> dis(0.0, sample_weight);
 
-    double r = dis(generator);
-    double c = posterior_[0].weight;
-    int i = 0;
+    // double r = dis(generator);
+    // double c = posterior_[0].weight;
+    // int i = 0;
 
-    for (int m = 0; m < kNumParticles_; m++)
-    {
-        double U = r + m * sample_weight;
-        while (U > c)
-        {
-            i++;
-            c += posterior_[i].weight;
-        }
-        resampled.push_back(posterior_[i]);
-    }
+    // for (int m = 0; m < kNumParticles_; m++)
+    // {
+    //     double U = r + m * sample_weight;
+    //     while (U > c)
+    //     {
+    //         i++;
+    //         c += posterior_[i].weight;
+    //     }
+    //     resampled.push_back(posterior_[i]);
+    // }
     
-    return resampled;  // Placeholder
+    // return resampled;  // Placeholder
+    ParticleList samples;
+
+    if (kNumParticles_ < 1 || posterior_.size() < 1) return samples;
+
+    std::random_device rd{};
+    std::mt19937 gen{rd()};
+    std::uniform_real_distribution<float> distribution(0.0, 1.0 / kNumParticles_);
+
+    float r = distribution(gen);
+    size_t idx = 0;
+    float s = posterior_[idx].weight;
+
+    for (int i = 0; i < kNumParticles_; ++i)
+    {
+        float u = r + i * 1. / kNumParticles_;
+        while (u > s) {
+            ++idx;
+            s += posterior_[idx].weight;
+        }
+        samples.push_back(posterior_[idx]);
+    }
+
+    return samples;
 }
 
 
@@ -248,7 +319,21 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
     for (auto&& particle : proposal) {
         mbot_lcm_msgs::particle_t weighted = particle;
         weighted.weight *= sensorModel_.likelihood(particle, laser, map);
+
+        if(std::isnan(weighted.weight) || std::isinf(weighted.weight)) {
+            std::cerr << "Warning: Weight became NaN or Inf" << std::endl;
+            // Handle the invalid weight case, e.g., by skipping this particle or assigning a default weight
+            continue; 
+        }
+        
         sumWeights += weighted.weight;
+
+        if(std::isnan(sumWeights) || std::isinf(sumWeights)) {
+            std::cerr << "Error: sumWeights became NaN or Inf" << std::endl;
+            // Decide how to handle this error, possibly by aborting the function
+            return posterior; // Or some other error handling
+        }
+
         posterior.push_back(weighted);
     }
 

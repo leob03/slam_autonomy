@@ -299,7 +299,8 @@ void OccupancyGridSLAM::initializePosesIfNeeded(void)
 void OccupancyGridSLAM::updateLocalization(void)
 {
     if(haveMap_ && (mode_ != mapping_only))
-    {
+    {   
+        std::cout << "in update localization" << std::endl;
         previousPose_ = currentPose_;
         if(mode_ == action_only){
             currentPose_  = filter_.updateFilterActionOnly(currentOdometry_);
@@ -351,6 +352,9 @@ void OccupancyGridSLAM::updateMap(void)
         haveMap_ = true;
     }
 
+    // mapper_.updateMap(currentScan_, currentPose_, map_);
+    // haveMap_ = true;
+    std::cout << haveMap_ << std::endl;
     // Publish the map even in localization-only mode to ensure the visualization is meaningful
     // Send every 5th map -- about 1Hz update rate for map output -- can change if want more or less during operation
     if(mapUpdateCount_ % 5 == 0)

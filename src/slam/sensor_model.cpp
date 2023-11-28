@@ -26,16 +26,21 @@ double SensorModel::likelihood(const mbot_lcm_msgs::particle_t& sample,
                                const OccupancyGrid& map)
 {
     /// TODO: Compute the likelihood of the given particle using the provided laser scan and map. 
-    double scanScore = 0.0;
+    double scanScore = 1.0;
     MovingLaserScan movingScan(scan, sample.parent_pose, sample.pose);
 
     for(auto& ray : movingScan)
     {
         Point<double> endpoint(ray.origin.x + ray.range*cos(ray.theta), ray.origin.y + ray.range*sin(ray.theta));
         auto rayEnd = global_position_to_grid_position(endpoint, map);
-        if(map.logOdds(rayEnd.x, rayEnd.y) > occupancy_threshold_)
+        // if(map.logOdds(rayEnd.x, rayEnd.y) > occupancy_threshold_)
+        // {
+        //     scanScore += 1.0;
+        // }
+
+        for(adjusted_ray_t ray:movingScan)
         {
-            scanScore += 1.0;
+            scanScore *= map.logOdds(rayEnd.x, rayEnd.y);
         }
         // else
         // {
