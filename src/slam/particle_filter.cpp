@@ -86,26 +86,26 @@ mbot_lcm_msgs::pose2D_t ParticleFilter::updateFilter(const mbot_lcm_msgs::pose2D
 
 
 
-    // Testing:
-    auto printParticleList = [](const ParticleList& list, const std::string& name) {
-        std::cout << name << ": [" << std::endl;
-        for (const auto& particle : list) {
-            std::cout << "    Particle: { Pose: {" 
-                      << "x: " << particle.pose.x << ", y: " << particle.pose.y << ", theta: " << particle.pose.theta 
-                      << "}, Weight: " << particle.weight << " }" << std::endl;
-        }
-        std::cout << "]" << std::endl;
-    };
+    // // Testing:
+    // auto printParticleList = [](const ParticleList& list, const std::string& name) {
+    //     std::cout << name << ": [" << std::endl;
+    //     for (const auto& particle : list) {
+    //         std::cout << "    Particle: { Pose: {" 
+    //                   << "x: " << particle.pose.x << ", y: " << particle.pose.y << ", theta: " << particle.pose.theta 
+    //                   << "}, Weight: " << particle.weight << " }" << std::endl;
+    //     }
+    //     std::cout << "]" << std::endl;
+    // };
 
-    printParticleList(prior, "Prior");
-    printParticleList(proposal, "Proposal");
-    printParticleList(posterior_, "Posterior");
+    // printParticleList(prior, "Prior");
+    // printParticleList(proposal, "Proposal");
+    // printParticleList(posterior_, "Posterior");
 
-    // Print the pose2D_t contents
-    std::cout << "PosteriorPose: { "
-              << "x: " << posteriorPose_.x << ", y: " << posteriorPose_.y 
-              << ", theta: " << posteriorPose_.theta << ", utime: " << posteriorPose_.utime 
-              << " }" << std::endl;
+    // // Print the pose2D_t contents
+    // std::cout << "PosteriorPose: { "
+    //           << "x: " << posteriorPose_.x << ", y: " << posteriorPose_.y 
+    //           << ", theta: " << posteriorPose_.theta << ", utime: " << posteriorPose_.utime 
+    //           << " }" << std::endl;
 
 
     posteriorPose_.utime = odometry.utime;
@@ -319,21 +319,21 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
 
     for (auto&& particle : proposal) {
         mbot_lcm_msgs::particle_t weighted = particle;
-        weighted.weight *= sensorModel_.likelihood(particle, laser, map);
+        weighted.weight += sensorModel_.likelihood(particle, laser, map);
 
-        // if(std::isnan(weighted.weight) || std::isinf(weighted.weight)) {
-        //     std::cerr << "Warning: Weight became NaN or Inf" << std::endl;
-        //     // Handle the invalid weight case, e.g., by skipping this particle or assigning a default weight
-        //     continue; 
-        // }
+        if(std::isnan(weighted.weight) || std::isinf(weighted.weight)) {
+            std::cerr << "Warning: Weight became NaN or Inf" << std::endl;
+            // Handle the invalid weight case, e.g., by skipping this particle or assigning a default weight
+            continue; 
+        }
         
         sumWeights += weighted.weight;
 
-        // if(std::isnan(sumWeights) || std::isinf(sumWeights)) {
-        //     std::cerr << "Error: sumWeights became NaN or Inf" << std::endl;
-        //     // Decide how to handle this error, possibly by aborting the function
-        //     return posterior; // Or some other error handling
-        // }
+        if(std::isnan(sumWeights) || std::isinf(sumWeights)) {
+            std::cerr << "Error: sumWeights became NaN or Inf" << std::endl;
+            // Decide how to handle this error, possibly by aborting the function
+            return posterior; // Or some other error handling
+        }
 
         posterior.push_back(weighted);
     }
