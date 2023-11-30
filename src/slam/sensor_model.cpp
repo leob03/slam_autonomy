@@ -29,19 +29,42 @@ double SensorModel::likelihood(const mbot_lcm_msgs::particle_t& sample,
     double scanScore = 1.0;
     MovingLaserScan movingScan(scan, sample.parent_pose, sample.pose);
 
+    const double fraction_factor = 0.5;
+
     for(auto& ray : movingScan)
     {
         Point<double> endpoint(ray.origin.x + ray.range*cos(ray.theta), ray.origin.y + ray.range*sin(ray.theta));
-        auto rayEnd = global_position_to_grid_position(endpoint, map);
-        // if(map.logOdds(rayEnd.x, rayEnd.y) > occupancy_threshold_)
-        // {
-        //     scanScore += 1.0;
-        // }
 
-        for(adjusted_ray_t ray:movingScan)
+        // Check the cell at the endpoint
+        double logOddsAtEndpoint = map.logOdds(endpoint.x, endpoint.y);
+        if(logOddsAtEndpoint > 0)
         {
-            scanScore *= map.logOdds(rayEnd.x, rayEnd.y);
+            scanScore += logOddsAtEndpoint;
         }
+        else
+        {
+            // If the endpoint is not a hit, check the cells along the ray path
+            double fractionalScore = 0.0;
+
+            // Check the cell before the endpoint
+            Point<double> beforeEndpoint(ray.origin.x - ray.range * std::cos(ray.theta)* map.cellsPerMeter(), 
+                                         ray.origin.y - ray.range * std::sin(ray.theta)* map.cellsPerMeter());
+            fractionalScore += std::max(0.0, static_cast<double>(map.logOdds(beforeEndpoint.x, beforeEndpoint.y)));
+
+            // Check the cell after the endpoint
+            Point<double> afterEndpoint(ray.origin.x + ray.range * std::cos(ray.theta)* map.cellsPerMeter(), 
+                                        ray.origin.y + ray.range * std::sin(ray.theta)* map.cellsPerMeter());
+            fractionalScore += std::max(0.0, static_cast<double>(map.logOdds(afterEndpoint.x, afterEndpoint.y)));
+
+            // Add a fraction of the log odds
+            scanScore += fractionalScore * fraction_factor;
+        }
+
+
+        // for(adjusted_ray_t ray:movingScan)
+        // {
+        //     scanScore += map.logOdds(rayEnd.x, rayEnd.y);
+        // }
         // else
         // {
         //     Point<int> nearestOccupiedCell = gridBFS(rayEnd, map);
