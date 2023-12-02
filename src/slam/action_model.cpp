@@ -8,9 +8,9 @@
 
 
 ActionModel::ActionModel(void)
-: k1_(0.005f)
-, k2_(0.025f)
-, min_dist_(0.0025)
+: k1_(0.001f)
+, k2_(0.001f)
+, min_dist_(0.025)
 , min_theta_(0.02)
 , initialized_(false)
 {
@@ -54,7 +54,8 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose2D_t& odometry)
 
     rot2_ = angle_diff(dtheta_, rot1_);
 
-    moved_ = (trans_ > min_dist_) || (fabs(rot2_) > min_theta_);
+    // moved_ = (trans_ > min_dist_) || (fabs(rot2_) > min_theta_);
+    moved_ = (dx_ != 0.0) || (dy_ != 0.0)|| (dtheta_ != 0.0);
 
     if (moved_)
     {

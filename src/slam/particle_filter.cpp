@@ -78,10 +78,13 @@ mbot_lcm_msgs::pose2D_t ParticleFilter::updateFilter(const mbot_lcm_msgs::pose2D
 {
     bool hasRobotMoved = actionModel_.updateAction(odometry);
 
-    auto prior = resamplePosteriorDistribution(map);
-    auto proposal = computeProposalDistribution(prior);
-    posterior_ = computeNormalizedPosterior(proposal, laser, map);
-    /// TODO: Add reinvigoration step
+    if(hasRobotMoved)
+    {
+        auto prior = resamplePosteriorDistribution();
+        // reinvigoratePriorDistribution(prior);
+        auto proposal = computeProposalDistribution(prior);
+        posterior_ = computeNormalizedPosterior(proposal, laser, map);
+    }
     posteriorPose_ = estimatePosteriorPose(posterior_);
 
 
@@ -126,7 +129,7 @@ mbot_lcm_msgs::pose2D_t ParticleFilter::updateFilterActionOnly(const mbot_lcm_ms
         posterior_ = proposal;
     }
 
-    posteriorPose_ = odometry;
+    posteriorPose_ = estimatePosteriorPose(posterior_);
 
     return posteriorPose_;
 }
@@ -319,7 +322,7 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
 
     for (auto&& particle : proposal) {
         mbot_lcm_msgs::particle_t weighted = particle;
-        weighted.weight += sensorModel_.likelihood(particle, laser, map);
+        weighted.weight = sensorModel_.likelihood(particle, laser, map);
 
         if(std::isnan(weighted.weight) || std::isinf(weighted.weight)) {
             std::cerr << "Warning: Weight became NaN or Inf" << std::endl;
@@ -367,18 +370,18 @@ mbot_lcm_msgs::pose2D_t ParticleFilter::estimatePosteriorPose(const ParticleList
     double total_weight = 0.0;
     double x_sum = 0.0, y_sum = 0.0, theta_x_sum = 0.0, theta_y_sum = 0.0;
 
-    // std::priority_queue<mbot_lcm_msgs::particle_t, std::vector<mbot_lcm_msgs::particle_t>, Compare_Particle> pq;
+    std::priority_queue<mbot_lcm_msgs::particle_t, std::vector<mbot_lcm_msgs::particle_t>, Compare_Particle> pq;
 
-    // for (const auto& particle : posterior) {
-    //     pq.push(particle);
-    // }
+    for (const auto& particle : posterior) {
+        pq.push(particle);
+    }
 
-    // mbot_lcm_msgs::particle_t particle;
-    // for (int i = 0; i < posterior.size() / 15; i++) {
+    mbot_lcm_msgs::particle_t particle;
+    for (int i = 0; i < posterior.size() / 15; i++) {
 
-    for (auto&& particle: posterior){
-        // particle = pq.top();
-        // pq.pop();
+    // for (auto&& particle: posterior){
+        particle = pq.top();
+        pq.pop();
         x_sum += particle.pose.x * particle.weight;
         y_sum += particle.pose.y * particle.weight;
         theta_x_sum += std::cos(particle.pose.theta) * particle.weight;

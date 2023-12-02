@@ -33,41 +33,49 @@ double SensorModel::likelihood(const mbot_lcm_msgs::particle_t& sample,
 
     for(auto& ray : movingScan)
     {
-        Point<double> endpoint(ray.origin.x + ray.range*cos(ray.theta), ray.origin.y + ray.range*sin(ray.theta));
-        Point<double> endpoint_ingrid = global_position_to_grid_cell(endpoint, map);
+        Point<double> endpoint(ray.origin.x + ray.range * std::cos(ray.theta), ray.origin.y + ray.range * std::sin(ray.theta));
+        auto endpoint_ingrid = global_position_to_grid_cell(endpoint, map);
+        // std::cout << map.logOdds(endpoint_ingrid.x, endpoint_ingrid.y) << std::endl;
+        if(map.logOdds(endpoint_ingrid.x, endpoint_ingrid.y) > 0)
+        {
+            scanScore += 1.0;
+            // scanScore += map.logOdds(endpoint_ingrid.x, endpoint_ingrid.y);
+            // std::cout << "Entered if block: logOdds value is " << map.logOdds(endpoint_ingrid.x, endpoint_ingrid.y) << std::endl;        
+        }
 
         // Check the cell at the endpoint
-        double logOddsAtEndpoint = map.logOdds(endpoint_ingrid.x, endpoint_ingrid.y);
-        if(logOddsAtEndpoint > 0)
-        {
-            scanScore += logOddsAtEndpoint;
-        }
-        else
-        {
-            // If the endpoint is not a hit, check the cells along the ray path
-            double fractionalScore = 0.0;
+        // double logOddsAtEndpoint = map.logOdds(endpoint_ingrid.x, endpoint_ingrid.y);
+        // if(logOddsAtEndpoint > 0)
+        // {
+        //     scanScore += logOddsAtEndpoint;
 
-            // Check the cell before the endpoint
-            // Point<double> beforeEndpoint(ray.origin.x + (ray.range - 1) * std::cos(ray.theta)* map.cellsPerMeter(), 
-            //                              ray.origin.y + (ray.range - 1) * std::sin(ray.theta)* map.cellsPerMeter());
-            Point<double> beforeEndpoint(ray.origin.x + (ray.range - 1) * std::cos(ray.theta), 
-                                         ray.origin.y + (ray.range - 1) * std::sin(ray.theta));
-            Point<double> beforeEndpoint_ingrid = global_position_to_grid_cell(beforeEndpoint, map);
+        // }
+        // else
+        // {
+        //     // If the endpoint is not a hit, check the cells along the ray path
+        //     double fractionalScore = 0.0;
 
-            fractionalScore += std::max(0.0, static_cast<double>(map.logOdds(beforeEndpoint_ingrid.x, beforeEndpoint_ingrid.y)));
+        //     // Check the cell before the endpoint
+        //     // Point<double> beforeEndpoint(ray.origin.x + (ray.range - 1) * std::cos(ray.theta)* map.cellsPerMeter(), 
+        //     //                              ray.origin.y + (ray.range - 1) * std::sin(ray.theta)* map.cellsPerMeter());
+        //     Point<double> beforeEndpoint(ray.origin.x + (ray.range - 1) * std::cos(ray.theta), 
+        //                                  ray.origin.y + (ray.range - 1) * std::sin(ray.theta));
+        //     Point<double> beforeEndpoint_ingrid = global_position_to_grid_cell(beforeEndpoint, map);
 
-            // Check the cell after the endpoint
-            // Point<double> afterEndpoint(ray.origin.x + (ray.range + 1) * std::cos(ray.theta)* map.cellsPerMeter(), 
-            //                             ray.origin.y + (ray.range + 1) * std::sin(ray.theta)* map.cellsPerMeter());
-            Point<double> afterEndpoint(ray.origin.x + (ray.range + 1) * std::cos(ray.theta), 
-                                        ray.origin.y + (ray.range + 1) * std::sin(ray.theta));
-            Point<double> afterEndpoint_ingrid = global_position_to_grid_cell(afterEndpoint, map);
+        //     fractionalScore += std::max(0.0, static_cast<double>(map.logOdds(beforeEndpoint_ingrid.x, beforeEndpoint_ingrid.y)));
 
-            fractionalScore += std::max(0.0, static_cast<double>(map.logOdds(afterEndpoint_ingrid.x, afterEndpoint_ingrid.y)));
+        //     // Check the cell after the endpoint
+        //     // Point<double> afterEndpoint(ray.origin.x + (ray.range + 1) * std::cos(ray.theta)* map.cellsPerMeter(), 
+        //     //                             ray.origin.y + (ray.range + 1) * std::sin(ray.theta)* map.cellsPerMeter());
+        //     Point<double> afterEndpoint(ray.origin.x + (ray.range + 1) * std::cos(ray.theta), 
+        //                                 ray.origin.y + (ray.range + 1) * std::sin(ray.theta));
+        //     Point<double> afterEndpoint_ingrid = global_position_to_grid_cell(afterEndpoint, map);
 
-            // Add a fraction of the log odds
-            scanScore += fractionalScore * fraction_factor;
-        }
+        //     fractionalScore += std::max(0.0, static_cast<double>(map.logOdds(afterEndpoint_ingrid.x, afterEndpoint_ingrid.y)));
+
+        //     // Add a fraction of the log odds
+        //     scanScore += fractionalScore * fraction_factor;
+        // }
 
 
         // for(adjusted_ray_t ray:movingScan)

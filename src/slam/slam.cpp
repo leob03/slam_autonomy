@@ -286,8 +286,10 @@ void OccupancyGridSLAM::initializePosesIfNeeded(void)
         currentPose_.utime  = currentScan_.times.back();
         haveInitializedPoses_ = true;
 
-        if (randomInitialPos_)
+        if (randomInitialPos_){
             filter_.initializeFilterRandomly(map_);
+            std::cout << randomInitialPos_ << std::endl;
+        }
         else
             filter_.initializeFilterAtPose(previousPose_);
     }
@@ -304,6 +306,7 @@ void OccupancyGridSLAM::updateLocalization(void)
         previousPose_ = currentPose_;
         if(mode_ == action_only){
             currentPose_  = filter_.updateFilterActionOnly(currentOdometry_);
+            // std::cout << mode_ << std::endl;
         }
         else{
             currentPose_  = filter_.updateFilter(currentOdometry_, currentScan_, map_);
