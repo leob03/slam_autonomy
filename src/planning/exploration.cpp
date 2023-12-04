@@ -239,17 +239,35 @@ int8_t Exploration::executeExploringMap(bool initialize)
     *       -- You will likely be able to see the frontier before actually reaching the end of the path leading to it.
     */
 
-    /// TODO: Implement logic for finding and selecting 
+    /// logic for finding and selecting 
     //        the next frontier to explore and planning the path to it.
     
-    
+    frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+    frontier_processing_t frontiers_info = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+    if (frontiers_.size() > frontiers_info.num_unreachable_frontiers && frontiers_info.path_selected.path_length > 1) {
+        currentPath_ = frontiers_info.path_selected;
+    }
 
     // Create the status message
     mbot_lcm_msgs::exploration_status_t status;
-    /// TODO: Implement the logic for updating the exploration status 
+    /// logic for updating the exploration status 
     //        based on frontier reachability and path status.
-  
     
+    status.utime = utime_now();
+    status.state = mbot_lcm_msgs::exploration_status_t::STATE_EXPLORING_MAP;
+
+    if (frontiers_.empty() || frontiers_.size() == frontiers_info.num_unreachable_frontiers) {
+        // done
+        status.state = mbot_lcm_msgs::exploration_status_t::STATE_COMPLETED_EXPLORATION;
+    }
+    else {
+        if (currentPath_.path.size() > 1) {
+            status.status = mbot_lcm_msgs::exploration_status_t::STATUS_IN_PROGRESS;
+        }
+        else {
+            status.status = mbot_lcm_msgs::exploration_status_t::STATE_FAILED_EXPLORATION;
+        }
+    }
 
     // printf("Status: %d\n", status.status);
     lcmInstance_->publish(EXPLORATION_STATUS_CHANNEL, &status);

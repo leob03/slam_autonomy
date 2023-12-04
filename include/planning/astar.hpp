@@ -6,6 +6,7 @@
 #include <planning/obstacle_distance_grid.hpp>
 #include <utils/grid_utils.hpp>
 #include <queue>
+#include <unordered_set>
 
 typedef Point<int> cell_t;
 
@@ -113,7 +114,7 @@ struct SearchParams
 
 float h_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances);
 float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params);
-std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params);
+std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params, const std::unordered_set<float>& closed);
 std::vector<Node*> extract_node_path(Node* goal_node, Node* start_node);
 // To prune the path for the waypoint follower
 std::vector<mbot_lcm_msgs::pose2D_t> extract_pose_path(std::vector<Node*> nodes, const ObstacleDistanceGrid& distances);
@@ -136,5 +137,10 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
                                              mbot_lcm_msgs::pose2D_t goal,
                                              const ObstacleDistanceGrid& distances,
                                              const SearchParams& params);
+
+
+float getIdFromCell(const cell_t cell);
+
+float getIdFromCell(const int x, const int y);
 
 #endif // PLANNING_ASTAR_HPP

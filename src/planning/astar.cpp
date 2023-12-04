@@ -1,6 +1,7 @@
 #include <planning/astar.hpp>
 #include <algorithm>
 #include <chrono>
+#include <unordered_set>
 
 using namespace std::chrono;
 
@@ -15,6 +16,8 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
     cell_t goalCell = global_position_to_grid_cell(Point<float>(goal.x, goal.y), distances);
     
     ////////////////// TODO: Implement your A* search here //////////////////////////
+
+    int globalNodeId = 2;
     
     Node* startNode = new Node(startCell.x, startCell.y);
     Node* goalNode = new Node(goalCell.x, goalCell.y);
@@ -23,8 +26,7 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
     path.utime = start.utime;
 
     PriorityQueue open;
-    std::vector<Node*> closed;
-    std::vector<cell_t> path_cells;
+    std::unordered_set<float> closed;
 
     std::vector<Node*> children;
     bool found_path = false;
@@ -35,15 +37,17 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
 
     Node* current = open.pop();
 
-
     int loop_count = 0;
-    while(!found_path && loop_count < 100000){ // attempt 100000 times
+    while(!found_path && loop_count < 50000){ // attempt 50000 loops
+
         loop_count++;
 
-        closed.push_back(current);
-        children = expand_node(current, distances, params);
+        closed.insert(getIdFromCell(current->cell));
+
+        children = expand_node(current, distances, params, closed);
 
         for (Node* child : children){
+
             float g = current -> g_cost + g_cost(current, child, distances, params);
             
             if (open.is_member(child)){
@@ -51,22 +55,27 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
                 Node* open_child = open.get_member(child);
                 if (g < open_child -> g_cost) {
                     open_child -> parent = current;
-                    open_child -> g_cost = g; // child has parent that reaches it with lower accumulated cost then prior parent
+                    open_child -> g_cost = g; // child has parent that reaches it with lower accumulated cost than prior parent
                 }
+                delete child;
             }
             else{
                 // child is not in open
                 child -> g_cost = g;
                 child -> h_cost = h_cost(child, goalNode, distances);
                 child -> parent = current;
-                if (std::find(closed.begin(), closed.end(), child) == closed.end()) {
-                    open.push(child);
-                }
+                open.push(child);
             }
+        }
+
+        if (open.empty()) {
+            break;
         }
 
         current = open.pop();
         if (current -> cell == goalNode -> cell) {
+            goalNode -> parent = current -> parent; // update goal's parent
+            std::cout << "Found Goal: " << goalNode -> cell.x << " ," << goalNode -> cell.y << std::endl;
             found_path = true;
         }
         
@@ -123,7 +132,7 @@ float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, cons
 
 }
 
-std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params)
+std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params, const std::unordered_set<float>& closed)
 {
     std::vector<Node*> children;
 
@@ -139,9 +148,11 @@ std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances
 
         if (distances.isCellInGrid(child_x, child_y)) {
             float distance = distances(child_x, child_y);
-            if (distance > params.minDistanceToObstacle) {
+            if (distance > params.minDistanceToObstacle + 0.03 /* stricter */ && !closed.count(getIdFromCell(child_x, child_y))) {
+                // std::cout << "Distance " << distance << " is above " << params.minDistanceToObstacle << std::endl;
                 // only consider child not too close to obstacle
                 Node *child = new Node(child_x, child_y);
+                // child->parent = node;
                 children.push_back(child);
             }
         }
@@ -161,6 +172,7 @@ std::vector<Node*> extract_node_path(Node* goal_node, Node* start_node)
     }
     path.push_back(current);
 
+    std::cout << current -> cell << std::endl;
     // return path; // without prune
     return prune_node_path(path); // prune
 }
@@ -225,4 +237,22 @@ std::vector<Node*> prune_node_path(std::vector<Node*> nodePath)
     new_node_path.push_back(nodePath[hook]); // push goal
 
     return new_node_path;
+}
+
+float getIdFromCell(const cell_t cell) {
+    float f = cell.y;
+    while (f >= 1) {
+        f /= 10;
+    }
+    f += cell.x;
+    return f;
+}
+
+float getIdFromCell(const int x, const int y) {
+    float f = y;
+    while (f >= 1) {
+        f /= 10;
+    }
+    f += x;
+    return f;
 }
