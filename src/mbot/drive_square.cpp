@@ -26,54 +26,54 @@ int main(int argc, char** argv)
 
     mbot_lcm_msgs::pose2D_t nextPose;
 
-    nextPose.x = 0.65f;
+    nextPose.x = 0.609f;
     nextPose.y = 0.0f;
     nextPose.theta = 0.0f;
     path.path[0] = nextPose;
 
-    nextPose.x = 0.61f;
-    nextPose.y = -0.61f;
+    nextPose.x = 0.609f;
+    nextPose.y = 0.609f;
     nextPose.theta = 0.0f;
     path.path[1] = nextPose;
 
-    nextPose.x = 1.22f;
-    nextPose.y = -0.61f;
+    nextPose.x = 1.218f;
+    nextPose.y = 0.609f;
     nextPose.theta = 0.0f;
     path.path[2] = nextPose;
 
-    nextPose.x = 1.22f;
-    nextPose.y = 0.61f;
+    nextPose.x = 1.218f;
+    nextPose.y = 0.0f;
     nextPose.theta = 0.0f;
     path.path[3] = nextPose;
 
-    nextPose.x = 1.83f;
-    nextPose.y = 0.61f;
+    nextPose.x = 1.827f;
+    nextPose.y = 0.0f;
     nextPose.theta = 0.0f;
     path.path[4] = nextPose;
 
-    nextPose.x = 1.83f;
-    nextPose.y = -0.61f;
+    nextPose.x = 1.827f;
+    nextPose.y = 1.218f;
     nextPose.theta = 0.0f;
     path.path[5] = nextPose;
 
-    nextPose.x = 2.44f;
-    nextPose.y = -0.61f;
+    nextPose.x = 0.0f;
+    nextPose.y = 1.218f;
     nextPose.theta = 0.0f;
     path.path[6] = nextPose;
-
-    nextPose.x = 2.44f;
-    nextPose.y = 0.0f;
-    nextPose.theta = 0.0f;
-    path.path[7] = nextPose;
-
-    nextPose.x = 3.2f;
-    nextPose.y = 0.0f;
-    nextPose.theta = 0.0f;
-    path.path[8] = nextPose;
 
     nextPose.x = 0.0f;
     nextPose.y = 0.0f;
     nextPose.theta = 0.0f;
+    // path.path[7] = nextPose;
+
+    // nextPose.x = 3.2f;
+    // nextPose.y = 0.0f;
+    // nextPose.theta = 0.0f;
+    // path.path[8] = nextPose;
+
+    // nextPose.x = 0.0f;
+    // nextPose.y = 0.0f;
+    // nextPose.theta = 0.0f;
     path.path.insert(path.path.begin(), nextPose);
     
     

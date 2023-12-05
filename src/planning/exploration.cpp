@@ -60,6 +60,8 @@ Exploration::Exploration(lcm::LCM* lcmInstance)
     params.robotRadius = 0.2;
     planner_.setParams(params);
 
+    std::cout << "Initialized Exploration" << std::endl;
+
     // To prevent the exploration finishing on the start
     initialized_ = false;
 }
@@ -164,21 +166,26 @@ void Exploration::executeStateMachine(void)
         switch(state_)
         {
             case mbot_lcm_msgs::exploration_status_t::STATE_INITIALIZING:
+                std::cout << "State: STATE_INITIALIZING" << std::endl;
                 nextState = executeInitializing();
                 break;
             case mbot_lcm_msgs::exploration_status_t::STATE_EXPLORING_MAP:
+                std::cout << "State: STATE_EXPLORING_MAP" << std::endl;
                 nextState = executeExploringMap(stateChanged);
                 break;
 
             case mbot_lcm_msgs::exploration_status_t::STATE_RETURNING_HOME:
+                std::cout << "State: STATE_RETURNING_HOME" << std::endl;
                 nextState = executeReturningHome(stateChanged);
                 break;
 
             case mbot_lcm_msgs::exploration_status_t::STATE_COMPLETED_EXPLORATION:
+                std::cout << "State: STATE_COMPLETED_EXPLORATION" << std::endl;
                 nextState = executeCompleted(stateChanged);
                 break;
 
             case mbot_lcm_msgs::exploration_status_t::STATE_FAILED_EXPLORATION:
+                std::cout << "State: STATE_FAILED_EXPLORATION" << std::endl;
                 nextState = executeFailed(stateChanged);
                 break;
         }

@@ -148,7 +148,7 @@ std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances
 
         if (distances.isCellInGrid(child_x, child_y)) {
             float distance = distances(child_x, child_y);
-            if (distance > params.minDistanceToObstacle + 0.03 /* stricter */ && !closed.count(getIdFromCell(child_x, child_y))) {
+            if (distance > params.minDistanceToObstacle /* stricter */ && !closed.count(getIdFromCell(child_x, child_y))) {
                 // std::cout << "Distance " << distance << " is above " << params.minDistanceToObstacle << std::endl;
                 // only consider child not too close to obstacle
                 Node *child = new Node(child_x, child_y);
