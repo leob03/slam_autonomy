@@ -113,15 +113,14 @@ struct SearchParams
 };
 
 float h_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances);
-float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params);
-std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params, const std::unordered_set<float>& closed);
+float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params, float easingFactor);
+std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params, const std::unordered_set<float>& closed, float easingFactor);
 std::vector<Node*> extract_node_path(Node* goal_node, Node* start_node);
 // To prune the path for the waypoint follower
 std::vector<mbot_lcm_msgs::pose2D_t> extract_pose_path(std::vector<Node*> nodes, const ObstacleDistanceGrid& distances);
 std::vector<Node*> prune_node_path(std::vector<Node*> nodePath);
 bool is_in_list(Node* node, std::vector<Node*> list);
 Node* get_from_list(Node* node, std::vector<Node*> list);
-
 
 /**
 * search_for_path uses an A* search to find a path from the start to goal poses. The search assumes a circular robot

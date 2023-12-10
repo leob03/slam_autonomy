@@ -14,11 +14,11 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
 {
     cell_t startCell = global_position_to_grid_cell(Point<float>(start.x, start.y), distances);
     cell_t goalCell = global_position_to_grid_cell(Point<float>(goal.x, goal.y), distances);
-    
-    ////////////////// TODO: Implement your A* search here //////////////////////////
 
     int globalNodeId = 2;
-    
+
+    float easingFactor = -0.1;
+
     Node* startNode = new Node(startCell.x, startCell.y);
     Node* goalNode = new Node(goalCell.x, goalCell.y);
 
@@ -44,11 +44,11 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
 
         closed.insert(getIdFromCell(current->cell));
 
-        children = expand_node(current, distances, params, closed);
+        children = expand_node(current, distances, params, closed, easingFactor);
 
         for (Node* child : children){
 
-            float g = current -> g_cost + g_cost(current, child, distances, params);
+            float g = current -> g_cost + g_cost(current, child, distances, params, easingFactor);
             
             if (open.is_member(child)){
                 // child is in open
@@ -69,16 +69,25 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
         }
 
         if (open.empty()) {
-            break;
+            if (easingFactor <= 0.03) {
+                // try again with easier restriction on distance
+                easingFactor += 0.01;
+                printf("[A*] Reattempting with Min Distance Reduced");
+                closed.clear();
+                open.push(startNode);
+            }
+            else {
+                break;
+            }
         }
 
         current = open.pop();
         if (current -> cell == goalNode -> cell) {
             goalNode -> parent = current -> parent; // update goal's parent
-            std::cout << "Found Goal: " << goalNode -> cell.x << " ," << goalNode -> cell.y << std::endl;
+            // std::cout << "Found Goal: " << goalNode -> cell.x << " ," << goalNode -> cell.y << std::endl;
             found_path = true;
         }
-        
+
     }
 
 
@@ -89,6 +98,7 @@ mbot_lcm_msgs::path2D_t search_for_path(mbot_lcm_msgs::pose2D_t start,
         // Remove last pose, and add the goal pose
         path.path.pop_back();
         path.path.push_back(goal);
+        printf("[A*] For Goal %d, %d, found path of length %d \n", goalCell.x, goalCell.y, int(path.path.size()));
     }
 
     else printf("[A*] Didn't find a path\n");
@@ -110,7 +120,7 @@ float h_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances)
     return (dx + dy) + ((1.41421356 - 2) * dy);
 
 }
-float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params)
+float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, const SearchParams& params, float easingFactor)
 {
     float g_cost = 0.0;
 
@@ -118,7 +128,7 @@ float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, cons
     float dy = abs(from -> cell.y - goal -> cell.y);
     float distance = distances(goal -> cell.x, goal -> cell.y);
     
-    if (distance > params.minDistanceToObstacle && distance < params.maxDistanceWithCost) {
+    if (distance > params.minDistanceToObstacle - easingFactor && distance < params.maxDistanceWithCost) {
         g_cost = pow(params.maxDistanceWithCost - distance, params.distanceCostExponent);
     }
 
@@ -132,7 +142,7 @@ float g_cost(Node* from, Node* goal, const ObstacleDistanceGrid& distances, cons
 
 }
 
-std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params, const std::unordered_set<float>& closed)
+std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances, const SearchParams& params, const std::unordered_set<float>& closed, float easingFactor)
 {
     std::vector<Node*> children;
 
@@ -148,7 +158,7 @@ std::vector<Node*> expand_node(Node* node, const ObstacleDistanceGrid& distances
 
         if (distances.isCellInGrid(child_x, child_y)) {
             float distance = distances(child_x, child_y);
-            if (distance > params.minDistanceToObstacle + 0.03 /* stricter */ && !closed.count(getIdFromCell(child_x, child_y))) {
+            if (distance > params.minDistanceToObstacle - easingFactor /* open a bit */ && !closed.count(getIdFromCell(child_x, child_y))) {
                 // std::cout << "Distance " << distance << " is above " << params.minDistanceToObstacle << std::endl;
                 // only consider child not too close to obstacle
                 Node *child = new Node(child_x, child_y);
@@ -171,8 +181,6 @@ std::vector<Node*> extract_node_path(Node* goal_node, Node* start_node)
         current = current -> parent;
     }
     path.push_back(current);
-
-    std::cout << current -> cell << std::endl;
     // return path; // without prune
     return prune_node_path(path); // prune
 }
@@ -181,7 +189,7 @@ std::vector<mbot_lcm_msgs::pose2D_t> extract_pose_path(std::vector<Node*> nodes,
 {
     std::vector<mbot_lcm_msgs::pose2D_t> path;
     bool no_heading = true;
-    for (int i = 0; i < nodes.size(); i++){
+    for (int i = nodes.size() - 1; i >= 0; i--){
         Point<float> global_pose = grid_position_to_global_position(nodes[i] -> cell, distances);
         mbot_lcm_msgs::pose2D_t pose = {0};
         pose.x = global_pose.x;
@@ -226,15 +234,28 @@ std::vector<Node*> prune_node_path(std::vector<Node*> nodePath)
     }
 
     new_node_path.push_back(nodePath[0]); // push start
-    int hook = 1;
-    while (hook + 1 < nodePath.size()) {
-        if ((nodePath[hook + 1] -> cell.x - nodePath[hook] -> cell.x != nodePath[hook] -> cell.x - nodePath[hook - 1] -> cell.x)
-            || (nodePath[hook + 1] -> cell.y - nodePath[hook] -> cell.y != nodePath[hook] -> cell.y - nodePath[hook - 1] -> cell.y)) {
-            new_node_path.push_back(nodePath[hook]);
-        }
-        hook++;
+    int hook = 0;
+    int curr = 1;
+    // while (hook + 1 < nodePath.size()) {
+    //     if (abs((nodePath[hook + 1] -> cell.x - nodePath[hook] -> cell.x) - (nodePath[hook] -> cell.x - nodePath[hook - 1] -> cell.x)) > 0.1
+    //         || abs((nodePath[hook + 1] -> cell.y - nodePath[hook] -> cell.y) - (nodePath[hook] -> cell.y - nodePath[hook - 1] -> cell.y)) > 0.1) {
+    //         new_node_path.push_back(nodePath[hook]);
+    //     }
+    //     hook++;
+    // }
+    while (curr < nodePath.size()) {
+        if (/*abs(atan2(nodePath[curr] -> cell.y - nodePath[hook] -> cell.y,
+                nodePath[curr] -> cell.x - nodePath[hook] -> cell.x)) > 0.2
+                && */(abs(nodePath[curr] -> cell.x - nodePath[hook] -> cell.x) > 5 
+                || abs(nodePath[curr] -> cell.y - nodePath[hook] -> cell.y) > 5)
+            ) {
+                // turned and far enough
+                new_node_path.push_back(nodePath[hook]);
+                hook = curr;
+            }
+        curr++;
     }
-    new_node_path.push_back(nodePath[hook]); // push goal
+    new_node_path.push_back(nodePath[nodePath.size() - 1]); // push goal
 
     return new_node_path;
 }

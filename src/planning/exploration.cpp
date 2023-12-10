@@ -144,6 +144,7 @@ void Exploration::copyDataForUpdate(void)
     // The first pose received is considered to be the home pose
     if(!haveHomePose_)
     {
+        printf("Set home pose as %f, %f", incomingPose_.x, incomingPose_.y);
         homePose_ = incomingPose_;
         haveHomePose_ = true;
     }
@@ -157,6 +158,8 @@ void Exploration::executeStateMachine(void)
 
     // Save the path from the previous iteration to determine if a new path was created and needs to be published
     mbot_lcm_msgs::path2D_t previousPath = currentPath_;
+
+    std::cout << state_ << std::endl;
 
     // Run the state machine until the state remains the same after an iteration of the loop
     do
@@ -245,9 +248,36 @@ int8_t Exploration::executeExploringMap(bool initialize)
     //        the next frontier to explore and planning the path to it.
     
     frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+
     frontier_processing_t frontiers_info = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+
     if (frontiers_.size() > frontiers_info.num_unreachable_frontiers && frontiers_info.path_selected.path_length > 1) {
-        currentPath_ = frontiers_info.path_selected;
+        // select path to nearest frontier
+        if (!haveCurrentGoal_) {
+            // first time
+            currentPath_ = frontiers_info.path_selected;
+            currentGoalPose_ = currentPath_.path[currentPath_.path.size() - 1];
+            haveCurrentGoal_ = true;
+        }
+        else {
+            float distToCurrentGoal = distance_between_points(Point<float>(currentGoalPose_.x, currentGoalPose_.y),
+                                                Point<float>(currentPose_.x, currentPose_.y));
+            // If we're within the threshold of current goal, then we're finished with this frontier.
+            if(distToCurrentGoal <= kReachedPositionThreshold)
+            {
+                // new start should be at previous goal
+                float distToNewStart = distance_between_points(Point<float>(currentGoalPose_.x, currentGoalPose_.y),
+                                                Point<float>(frontiers_info.path_selected.path[0].x, frontiers_info.path_selected.path[0].y));
+                if (distToNewStart <= kReachedPositionThreshold) {
+                    // If we're within the threshold of current goal, then we're finished with this frontier.
+                    currentPath_ = frontiers_info.path_selected;
+                    currentGoalPose_ = currentPath_.path[currentPath_.path.size() - 1];
+                }
+                else {
+                    printf("Big Problem: Next path is not close to the current path's end!");
+                }
+            }
+        }
     }
 
     // Create the status message
@@ -260,16 +290,19 @@ int8_t Exploration::executeExploringMap(bool initialize)
 
     if (frontiers_.empty() || frontiers_.size() == frontiers_info.num_unreachable_frontiers) {
         // done
-        status.state = mbot_lcm_msgs::exploration_status_t::STATE_COMPLETED_EXPLORATION;
+        status.status = mbot_lcm_msgs::exploration_status_t::STATUS_COMPLETE;
     }
     else {
         if (currentPath_.path.size() > 1) {
             status.status = mbot_lcm_msgs::exploration_status_t::STATUS_IN_PROGRESS;
         }
         else {
-            status.status = mbot_lcm_msgs::exploration_status_t::STATE_FAILED_EXPLORATION;
+            status.status = mbot_lcm_msgs::exploration_status_t::STATUS_FAILED;
         }
     }
+
+    printf("Status: %d", int(status.status));
+    printf("State: %d", int(status.state));
 
     // printf("Status: %d\n", status.status);
     lcmInstance_->publish(EXPLORATION_STATUS_CHANNEL, &status);
@@ -308,7 +341,10 @@ int8_t Exploration::executeReturningHome(bool initialize)
     *       (2) currentPath_.path_length > 1  :  currently following a path to the home pose
     */
 
-    
+    mbot_lcm_msgs::path2D_t pathToHome = planner_.planPath(currentPose_, homePose_);
+    if (pathToHome.path_length > 1) {
+        currentPath_ = pathToHome;
+    }
 
     // Create the status message
     mbot_lcm_msgs::exploration_status_t status;

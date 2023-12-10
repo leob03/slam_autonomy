@@ -79,6 +79,8 @@ private:
     int8_t state_;                      // Current state of the high-level exploration state machine, as defined in exploration_status_t
     bool  shouldAttemptEscape_;         // Flag indicating if the escaping_map state should be entered after returning_home completes
     mbot_lcm_msgs::pose2D_t currentPose_;  // Robot pose to use for computing new paths
+    mbot_lcm_msgs::pose2D_t currentGoalPose_;
+    bool haveCurrentGoal_ = false;
     OccupancyGrid currentMap_;          // Map to use for finding frontiers and planning paths to them
     MotionPlanner planner_;             // Planner to use for finding collision-free paths to select frontiers
 
