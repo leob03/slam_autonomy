@@ -24,9 +24,11 @@ using pose_vec_t = std::vector<pose_t>;
 bool are_equal(const pose_vec_t& lhs, const pose_vec_t& rhs)
 {
     if(lhs.size() != rhs.size()) return false;
-    for (const auto& l: lhs)
-        for (const auto& r: rhs)
-            if (!are_equal(l, r)) return false;
+    for (int i = 0; i < lhs.size(); i++) {
+        if (!are_equal(lhs[i], rhs[i])) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -57,6 +59,8 @@ Exploration::Exploration(lcm::LCM* lcmInstance)
     MotionPlannerParams params;
     params.robotRadius = 0.2;
     planner_.setParams(params);
+
+    std::cout << "Initialized Exploration" << std::endl;
 
     // To prevent the exploration finishing on the start
     initialized_ = false;
@@ -162,21 +166,26 @@ void Exploration::executeStateMachine(void)
         switch(state_)
         {
             case mbot_lcm_msgs::exploration_status_t::STATE_INITIALIZING:
+                std::cout << "State: STATE_INITIALIZING" << std::endl;
                 nextState = executeInitializing();
                 break;
             case mbot_lcm_msgs::exploration_status_t::STATE_EXPLORING_MAP:
+                std::cout << "State: STATE_EXPLORING_MAP" << std::endl;
                 nextState = executeExploringMap(stateChanged);
                 break;
 
             case mbot_lcm_msgs::exploration_status_t::STATE_RETURNING_HOME:
+                std::cout << "State: STATE_RETURNING_HOME" << std::endl;
                 nextState = executeReturningHome(stateChanged);
                 break;
 
             case mbot_lcm_msgs::exploration_status_t::STATE_COMPLETED_EXPLORATION:
+                std::cout << "State: STATE_COMPLETED_EXPLORATION" << std::endl;
                 nextState = executeCompleted(stateChanged);
                 break;
 
             case mbot_lcm_msgs::exploration_status_t::STATE_FAILED_EXPLORATION:
+                std::cout << "State: STATE_FAILED_EXPLORATION" << std::endl;
                 nextState = executeFailed(stateChanged);
                 break;
         }
@@ -239,17 +248,35 @@ int8_t Exploration::executeExploringMap(bool initialize)
     *       -- You will likely be able to see the frontier before actually reaching the end of the path leading to it.
     */
 
-    /// TODO: Implement logic for finding and selecting 
+    /// logic for finding and selecting 
     //        the next frontier to explore and planning the path to it.
     
-    
+    frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+    frontier_processing_t frontiers_info = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+    if (frontiers_.size() > frontiers_info.num_unreachable_frontiers && frontiers_info.path_selected.path_length > 1) {
+        currentPath_ = frontiers_info.path_selected;
+    }
 
     // Create the status message
     mbot_lcm_msgs::exploration_status_t status;
-    /// TODO: Implement the logic for updating the exploration status 
+    /// logic for updating the exploration status 
     //        based on frontier reachability and path status.
-  
     
+    status.utime = utime_now();
+    status.state = mbot_lcm_msgs::exploration_status_t::STATE_EXPLORING_MAP;
+
+    if (frontiers_.empty() || frontiers_.size() == frontiers_info.num_unreachable_frontiers) {
+        // done
+        status.state = mbot_lcm_msgs::exploration_status_t::STATE_COMPLETED_EXPLORATION;
+    }
+    else {
+        if (currentPath_.path.size() > 1) {
+            status.status = mbot_lcm_msgs::exploration_status_t::STATUS_IN_PROGRESS;
+        }
+        else {
+            status.status = mbot_lcm_msgs::exploration_status_t::STATE_FAILED_EXPLORATION;
+        }
+    }
 
     // printf("Status: %d\n", status.status);
     lcmInstance_->publish(EXPLORATION_STATUS_CHANNEL, &status);

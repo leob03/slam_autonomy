@@ -21,21 +21,23 @@ MovingLaserScan::MovingLaserScan(const mbot_lcm_msgs::lidar_t& scan,
 
         for(int n = 0; n < scan.num_ranges; n += rayStride)
         {
-            if(scan.ranges[n] > 0.1f) //all ranges less than a robot radius are invalid
+            // if(scan.ranges[n] > 0.1f && scan.ranges[n] < 5.5f)
+            if(scan.ranges[n] > 0.1f)
             {
-                /// TODO: Do something about those ranges that are equal to the maximum value (assumed 5.5)
-
                 mbot_lcm_msgs::pose2D_t rayPose = interpolate_pose_by_time(scan.times[n], beginPose, endPose);
 
                 adjusted_ray_t ray;
 
-                /// TODO: Populate the 'ray' using interpolated pose and the laser scan information.
+                ray.origin.x = rayPose.x;
+                ray.origin.y = rayPose.y;
+                ray.range    = scan.ranges[n];
+                ray.theta    = wrap_to_pi(rayPose.theta + scan.thetas[n]);
                 
-
                 adjustedRays_.push_back(ray);
             }
         }
     }
 }
+
 
  

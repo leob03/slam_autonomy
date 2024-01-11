@@ -449,11 +449,11 @@ int main(int argc, char** argv)
             mbot_lcm_msgs::twist2D_t cmd = controller.updateCommand();
             // Limit command values
             // Fwd vel
-            if (cmd.vx > 0.3) cmd.vx = 0.3;
-            else if (cmd.vx < -0.3) cmd.vx = -0.3;
+            if (cmd.vx > 0.7) cmd.vx = 0.7;
+            else if (cmd.vx < -0.7) cmd.vx = -0.7;
 
             // Angular vel
-            float max_ang_vel = M_PI * 2.0 / 3.0;
+            float max_ang_vel = M_PI * 3.0 / 3.0;
             if (cmd.wz > max_ang_vel) cmd.wz = max_ang_vel;
             else if (cmd.wz < -max_ang_vel) cmd.wz = -max_ang_vel;
 
