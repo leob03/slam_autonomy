@@ -1,6 +1,6 @@
 # MBot Autonomy
 
-This repo contains the SLAM and motion controller solution code.
+This repo contains the SLAM and motion controller of our mbot.
 
 ## Installation
 
