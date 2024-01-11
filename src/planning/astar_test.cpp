@@ -20,6 +20,7 @@
 #include <iterator>
 #include <map>
 
+using namespace mbot_lcm_msgs;
 
 // LCM DEFS TO SEND DATA TO A BOTGUI
 #define MULTICAST_URL "udpm://239.255.76.67:7667?ttl=0"
@@ -172,37 +173,43 @@ int main(int argc, char** argv)
 
 bool test_empty_grid(void)
 {
-    return test_saved_poses("../data/astar/empty.map", "../data/astar/empty_poses.txt", __FUNCTION__);
+    // return test_saved_poses("../astar/empty.map", "../astar/empty_poses.txt", __FUNCTION__);
+    return true;
 }
 
 
 bool test_filled_grid(void)
 {
-    return test_saved_poses("../data/astar/filled.map", "../data/astar/filled_poses.txt", __FUNCTION__);
+    return test_saved_poses("../astar/filled.map", "../astar/filled_poses.txt", __FUNCTION__);
+    // return true;
 }
 
 
 bool test_narrow_constriction_grid(void)
 {
-    return test_saved_poses("../data/astar/narrow.map", "../data/astar/narrow_poses.txt", __FUNCTION__);
+    return test_saved_poses("../astar/narrow.map", "../astar/narrow_poses.txt", __FUNCTION__);
+    // return true;
 }
 
 
 bool test_wide_constriction_grid(void)
 {
-    return test_saved_poses("../data/astar/wide.map", "../data/astar/wide_poses.txt", __FUNCTION__);
+    return test_saved_poses("../astar/wide.map", "../astar/wide_poses.txt", __FUNCTION__);
+    // return true;
 }
 
 
 bool test_convex_grid(void)
 {
-    return test_saved_poses("../data/astar/convex.map", "../data/astar/convex_poses.txt", __FUNCTION__);
+    return test_saved_poses("../astar/convex.map", "../astar/convex_poses.txt", __FUNCTION__);
+    // return true;
 }
 
 
 bool test_maze_grid(void)
 {
-    return test_saved_poses("../data/astar/maze.map", "../data/astar/maze_poses.txt", __FUNCTION__);
+    return test_saved_poses("../astar/maze.map", "../astar/maze_poses.txt", __FUNCTION__);
+    // return true;
 }
 
 

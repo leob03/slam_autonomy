@@ -46,6 +46,10 @@ private:
 
     void scoreEndpoint(const adjusted_ray_t& ray, OccupancyGrid& map);
     void scoreRay(const adjusted_ray_t& ray, OccupancyGrid& map);
+
+    void increaseCellOdds(int x, int y, OccupancyGrid& map);
+    void decreaseCellOdds(int x, int y, OccupancyGrid& map);
+
     std::vector<Point<int>> bresenham(const adjusted_ray_t& ray, const OccupancyGrid& map);
     std::vector<Point<int>> divideAndStepAlongRay(const adjusted_ray_t& ray, const OccupancyGrid& map);
 
